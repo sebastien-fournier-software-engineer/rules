@@ -1,0 +1,190 @@
+---
+description: Guidelines for Python project directory structure, naming conventions, and architecture
+globs: "**/*"
+alwaysApply: false
+---
+
+# Python Project Structure Rules
+
+Consistent framework for organizing files, directories, and modules. Apply when creating, moving, or refactoring project layout.
+
+## Key Principles
+
+- **Logical organization** — group by purpose, not by file type alone
+- **Consistent naming** — predictable conventions across the repo
+- **Component isolation** — clear boundaries between modules and services
+- **Scalable architecture** — structure supports growth without reorganization
+- **Documentation alignment** — layout matches what docs describe
+
+## Directory Structure
+
+Use **src-layout** for installable packages:
+
+```
+project_root/
+├── pyproject.toml          # or setup.py + requirements.txt
+├── README.md
+├── .gitignore
+├── .env.example            # never commit .env
+├── src/
+│   └── package_name/
+│       ├── __init__.py
+│       ├── api/
+│       ├── models/
+│       └── services/
+├── tests/
+│   ├── conftest.py
+│   ├── unit/
+│   └── integration/
+├── docs/
+├── config/                 # non-secret defaults; secrets via env
+├── scripts/                # one-off automation, not library code
+└── static/                 # if applicable
+```
+
+Rules:
+
+- Root holds entry config (`pyproject.toml`, `README`, CI, Docker) — not application logic
+- Source lives under `src/<package_name>/`, never loose `.py` files at root
+- Tests mirror package layout: `src/foo/bar.py` → `tests/foo/test_bar.py`
+- Build artifacts (`dist/`, `build/`, `*.egg-info/`, `.pytest_cache/`, `.venv/`) stay in `.gitignore`
+- One concern per top-level directory; avoid deep nesting beyond 3–4 levels
+
+## Module Organization
+
+- One package = one domain; split when a module exceeds ~300 lines or mixes concerns
+- Public API via `__init__.py` exports; prefix internals with `_` or place in `_internal/`
+- Dependencies flow inward: `api` → `services` → `models` — never reverse
+- Cross-module imports use absolute paths: `from package_name.services import foo`
+- Shared types live in `types.py` or a dedicated `schemas/` module
+- Version at package level (`__version__` in `__init__.py` or `pyproject.toml`)
+
+## File Naming Conventions
+
+| Kind | Convention | Example |
+|------|------------|---------|
+| Python modules | `snake_case.py` | `user_service.py` |
+| Classes | `PascalCase` | `UserService` |
+| Functions / vars | `snake_case` | `get_user_by_id` |
+| Constants | `UPPER_SNAKE_CASE` | `MAX_RETRIES` |
+| Test files | `test_<module>.py` | `test_user_service.py` |
+| Config files | lowercase, hyphen ok | `docker-compose.yml` |
+| Scripts | verb or purpose | `migrate_db.py` |
+
+- No version numbers in source filenames (`utils_v2.py` → refactor or rename module)
+- Generated files: suffix or dedicated dir (`*.generated.py`, `build/`)
+- Temp files: never commit; use `.tmp` suffix locally if needed
+
+## Component Structure
+
+Each component (service, CLI, library) follows:
+
+```
+component/
+├── __init__.py       # public exports
+├── config.py         # component-specific settings
+├── models.py         # or models/ for larger components
+├── services.py       # business logic
+├── api.py            # HTTP/CLI entry if applicable
+└── exceptions.py     # domain-specific errors
+```
+
+- Interface (public functions/classes) separate from implementation details
+- Resources (templates, static assets) colocated under `component/resources/` or project `static/`
+- Metadata in `pyproject.toml` (name, version, entry points) — not scattered in code
+
+## Configuration Management
+
+- Secrets and env-specific values via environment variables — never hardcoded
+- Provide `.env.example` documenting required vars; add `.env` to `.gitignore`
+- Defaults in `config.py` or `config/settings.py`; override via env
+- Use Pydantic `BaseSettings` or similar for validation at startup
+- Per-environment files only when necessary: `config/development.py`, `config/production.py`
+- Document every config key in README or `docs/configuration.md`
+
+## Resource Organization
+
+```
+static/           # CSS, JS, images served to clients
+templates/        # Jinja2 or similar
+locales/          # i18n: en/, fr/ with consistent key naming
+data/             # sample or fixture data (not production data)
+```
+
+- Reference resources with paths relative to package root, not cwd
+- Large binaries: Git LFS or external storage — not in git history
+- Version static assets with cache-busting hashes in production builds
+
+## Build System Structure
+
+- Single source of truth: `pyproject.toml` (PEP 621) preferred over bare `setup.py`
+- Dev deps in optional groups: `[project.optional-dependencies] dev = [...]`
+- CI config at root: `.gitlab-ci.yml`, `.github/workflows/`
+- Docker: `Dockerfile` at service root; `docker-compose.yml` for local multi-service
+- Lock files committed when used (`poetry.lock`, `uv.lock`); pin versions in CI
+
+## Test Organization
+
+```
+tests/
+├── conftest.py           # shared fixtures
+├── unit/                 # fast, isolated, mocked externals
+├── integration/          # real DB/API, mark with @pytest.mark.integration
+└── helpers/              # test utilities, not production code
+```
+
+- Mirror `src/` layout; name files `test_<module>.py`
+- Fixtures in `conftest.py` at the nearest common ancestor
+- Test data in `tests/fixtures/` or `tests/data/`
+- Reports/output to `htmlcov/`, `.pytest_cache/` — gitignored
+- See testing rules for coverage and CI requirements
+
+## Documentation Structure
+
+```
+docs/
+├── index.md              # or README.md at root for small projects
+├── getting-started.md
+├── configuration.md
+├── api/                  # auto-generated or hand-written API docs
+└── development.md
+```
+
+- README: install, run, test, deploy — enough to onboard in 5 minutes
+- Code examples live in `docs/examples/` or as doctest; keep them runnable
+- API docs generated from docstrings (Google style) via Sphinx or MkDocs
+
+## Dependency Management
+
+- Declare in `pyproject.toml` `[project.dependencies]` or `requirements.txt`
+- Pin major versions in prod; use ranges only when you actively test upgrades
+- Vendor third-party code only as last resort — prefer declared dependencies
+- Document why non-obvious deps exist in `pyproject.toml` comments or ADR
+- Separate: `requirements.txt` (prod), `requirements-dev.txt` or `[dev]` group
+
+## Version Control Structure
+
+- Branch naming: `feat/`, `fix/`, `chore/`, `docs/` prefixes
+- Tags for releases: `component/vX.Y.Z` (semver)
+- `.gitignore`: venv, caches, build artifacts, `.env`, IDE files
+- Pre-commit hooks at repo root (`.pre-commit-config.yaml`)
+- Monorepo: one service per top-level dir with its own `pyproject.toml` / Dockerfile / CI job
+
+## Deployment Structure
+
+```
+deploy/                 # or in separate deployment repo
+├── docker/
+├── k8s/                # manifests or Kustomize overlays
+└── scripts/
+    └── deploy.sh
+```
+
+- Infrastructure-as-code (Terraform, Kustomize, Helm) in dedicated dirs — not mixed with app code
+- Environment configs as overlays, not duplicated full manifests
+- Container config (`Dockerfile`, `.dockerignore`) colocated with the service it builds
+- Release artifacts immutable and tagged; deployment pins exact image digest or semver tag
+
+## Rationale
+
+Clear structure improves maintainability, speeds onboarding, supports growth without reorganization, prevents ad-hoc layout decisions, and lets developers find files quickly.

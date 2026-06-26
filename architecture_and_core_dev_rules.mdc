@@ -1,0 +1,89 @@
+---
+description: "Core development principles applicable to all projects, regardless of technology stack."
+globs: "**/*"
+alwaysApply: true
+---
+
+# Core Rules
+
+## Purpose
+
+The core rules provide a set of foundational principles and patterns that guide overall code quality, architecture, and development practices. These rules establish a common baseline for all development work.
+
+## Key Principles
+
+- **Clean Code:** Emphasizes readability, maintainability, and simplicity
+- **SOLID Principles:** Guidelines for creating maintainable object-oriented designs
+- **Design Patterns:** Implementation guidance for common design patterns
+- **Error Handling:** Standardized approaches to handling errors
+- **Logging:** Comprehensive logging practices and patterns
+
+## General Code Principles
+
+- **KISS (Keep It Simple, Stupid):** Favor simplicity over complexity
+- **DRY (Don't Repeat Yourself):** Avoid code duplication
+- **Clear naming conventions** for variables, functions, and classes
+- **Code documentation standards**
+- **Function/method size and focus guidelines:** Short functions with a single purpose
+
+## Design Patterns
+
+Documentation and guidance for implementing Gang of Four design patterns, including guidelines on when to use specific patterns and documentation requirements.
+
+**Creational Patterns:** Factory Method, Abstract Factory, Builder, Prototype, Singleton
+
+**Structural Patterns:** Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy
+
+**Behavioral Patterns:** Chain of Responsibility, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor
+
+## Error Handling
+
+- Use structured exception handling
+- Follow exception logging requirements
+- Implement retry mechanisms for transient errors
+- Define custom exception types for domain-specific errors
+- Avoid bare `except` clauses; use specific exception types with informative messages
+
+## Logging Standards
+
+- Use log levels appropriately (debug, info, warning, error, critical)
+- Prefer structured logging formats
+- Include relevant context in log messages
+- Follow exception logging patterns
+- Apply performance logging patterns where useful
+- Log state transitions and resource usage when relevant
+
+## Architecture Guidelines
+
+- Modular architecture with clear component boundaries
+- Separation of concerns
+- Dependency injection
+- Interface-based design
+- MVC architecture principles and implementation patterns
+
+## Asynchronous Operations
+
+- Use async/await patterns for I/O-bound work
+- Manage threads safely when concurrency is required
+- Provide status updates for long-running operations
+- Handle exceptions correctly in asynchronous code
+- Implement cancellation mechanisms for cancellable work
+
+## Version Control Practices
+
+- Follow consistent commit message formats and content
+- Use clear branching strategies
+- Follow pull request guidelines
+- Apply code review practices before merging
+
+## Rationale
+
+The core rules serve several essential purposes:
+
+- **Quality Assurance:** Establishing a baseline for code quality and architecture
+- **Consistency:** Ensuring a consistent approach across different parts of the project
+- **Maintainability:** Making code easier to maintain over time
+- **Knowledge Sharing:** Documenting best practices for team members
+- **AI Assistance:** Providing clear guidance to the Cursor AI for generating high-quality code
+
+By following these core rules, developers (both human and AI) can create code that is consistent, maintainable, and follows established best practices in software development.

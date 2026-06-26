@@ -1,0 +1,129 @@
+---
+description: "Comprehensive standards for Python testing: organization, coverage, pytest patterns, and CI integration"
+globs: tests/**/*.py, **/test_*.py, **/*_test.py, **/conftest.py
+alwaysApply: false
+---
+
+# Python Testing Rules
+
+Comprehensive standards for testing all aspects of the project.
+
+## Purpose
+
+Establish requirements and best practices for testing: adequate coverage, consistent organization, and proper validation of all code components.
+
+## Key Principles
+
+- **Test pyramid**: Many unit tests, fewer integration tests, minimal E2E tests
+- **Tests first**: Write tests before or alongside implementation
+- **High coverage**: Target at least 80% code coverage
+- **Test independence**: Each test must run in isolation
+- **Fast execution**: Optimize for quick feedback loops
+- **Automation**: All tests run in CI without manual steps
+
+## Test Organization
+
+- Store tests in a dedicated `tests/` directory
+- Mirror the package structure under `tests/`
+- Name files `test_*.py` or `*_test.py`
+- Group by functionality or component
+- Separate directories by test type when needed (`unit/`, `integration/`, `e2e/`)
+
+```
+src/my_package/module.py  →  tests/my_package/test_module.py
+```
+
+## Unit Testing
+
+- Cover all public functions, classes, and methods
+- Write tests during or before implementation
+- Isolate the unit under test; mock external dependencies
+- Follow **Arrange–Act–Assert (AAA)**
+- Test happy paths, error paths, and edge cases
+- Keep tests fast; avoid real network, disk, or DB unless required
+- Use `pytest` fixtures for setup and teardown
+
+```python
+# ✅ GOOD — clear AAA, descriptive name, isolated
+def test_parse_config_returns_defaults_when_file_missing(tmp_path):
+    # Arrange
+    missing = tmp_path / "config.yaml"
+
+    # Act
+    result = parse_config(missing)
+
+    # Assert
+    assert result == ConfigDefaults()
+```
+
+```python
+# ❌ BAD — tests implementation details, no clear assertion
+def test_internal():
+    obj = MyClass()
+    obj._load()  # private method
+    assert True
+```
+
+## Smoke Testing
+
+- Cover all core functionality with a fast, reliable suite
+- Run on every code change (early in CI)
+- Verify critical user paths, key API endpoints, and common workflows
+- Keep structure simple; fail fast on regressions
+
+## Integration Testing
+
+- Test interactions between real components
+- Prefer real dependencies when practical; use test DBs or services
+- Verify typical user workflows and system behavior
+- Clean up after each test to prevent pollution
+- Cover database interactions and API boundaries
+
+Mark with `@pytest.mark.integration` and exclude from the default fast suite when appropriate.
+
+## End-to-End Testing
+
+- Exercise complete user workflows against realistic infrastructure
+- Use UI or API-level tests for full data-flow verification
+- Document prerequisites and environment setup/teardown
+- Run less frequently than unit and integration tests
+
+## Test Environment
+
+- Use consistent, reproducible configuration (fixtures, `conftest.py`, env vars)
+- Isolate from production data; reset state between runs
+- Document external requirements (services, ports, credentials via env)
+
+## Best Practices
+
+- **Independence**: No shared mutable state between tests
+- **Naming**: `test_<behavior>_when_<condition>` — describe expected behavior
+- **Determinism**: Avoid random data unless the randomness is what you test
+- **Readability**: One logical assertion per test when possible
+- **Behavior over implementation**: Assert outputs and contracts, not internal calls
+- **Documentation**: Comment non-obvious setup or domain-specific edge cases
+
+## AI-Optimized Testing
+
+When writing or reviewing tests, prefer patterns that are easy to parse and extend:
+
+- Clear intent in test names and docstrings
+- Consistent AAA structure across the suite
+- Typed fixtures and mocks (`pytest.fixture` return types, `unittest.mock` specs)
+- Explicit edge-case comments where business rules are subtle
+- Reusable helpers in `conftest.py` or `tests/helpers/` with docstrings
+
+## Tooling
+
+- **Framework**: `pytest`
+- **Coverage**: `pytest-cov` with `--cov-fail-under=80` in CI
+- **Mocking**: `pytest-mock` or `unittest.mock`
+- **Markers**: `@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.slow`
+
+## Rationale
+
+- **Quality assurance**: Code behaves as specified
+- **Regression prevention**: Catch breaks before release
+- **Documentation**: Tests are executable specifications
+- **Design feedback**: Hard-to-test code often signals poor design
+- **Refactoring confidence**: Safe changes with a green suite
